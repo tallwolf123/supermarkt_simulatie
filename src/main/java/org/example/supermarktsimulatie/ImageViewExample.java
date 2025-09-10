@@ -11,22 +11,23 @@ public class ImageViewExample extends Application {
 
     @Override
     public void start(Stage stage) {
-        // Afbeelding laden vanuit resources (classpath)
-        Image image = new Image(getClass().getResourceAsStream("/afbeeldingen/superman.png"));
+        // Afbeelding laden vanuit resources
+        Image image = new Image(getClass().getResourceAsStream("/afbeeldingen/farmershall_1stfloor.png"));
 
-        // ImageView maken en configureren
+        // ImageView maken
         ImageView imageView = new ImageView(image);
-        imageView.setX(10);
-        imageView.setY(10);
-        imageView.setFitWidth(575);
-        imageView.setPreserveRatio(true);
+        imageView.setPreserveRatio(false); // niet behouden, zodat het venster volledig gevuld wordt
 
         // Scene maken
         Group root = new Group(imageView);
-        Scene scene = new Scene(root, 595, 370);
+        Scene scene = new Scene(root, 800, 600); // startgrootte van het venster
+
+        // ImageView binden aan de Scene, zodat het meegroeit
+        imageView.fitWidthProperty().bind(scene.widthProperty());
+        imageView.fitHeightProperty().bind(scene.heightProperty());
 
         // Stage instellen
-        stage.setTitle("Displaying Image");
+        stage.setTitle("Dynamic ImageView Example");
         stage.setScene(scene);
         stage.show();
     }
