@@ -14,34 +14,26 @@ public class ImageViewExample extends Application {
     @Override
     public void start(Stage stage) {
         // Afbeelding laden vanuit resources
-        Image image = new Image(getClass().getResourceAsStream("/afbeeldingen/farmershall_1stfloor.png"));
-
-        // ImageView maken en aspect ratio behouden
-        ImageView imageView = new ImageView(image);
+        ImageView imageView = new ImageView(new Image(getClass().getResourceAsStream("/afbeeldingen/farmershall_1stfloor.png")));
         imageView.setPreserveRatio(true);
 
-        // StackPane gebruiken om de afbeelding te centreren
+        // Root container die de afbeelding centreert
         StackPane root = new StackPane(imageView);
 
-        // Schermgrootte ophalen
-        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        double screenWidth = screenBounds.getWidth();
-        double screenHeight = screenBounds.getHeight();
+        // Schermgrootte ophalen en Scene maken
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight());
 
-        // Scene maken met schermgrootte
-        Scene scene = new Scene(root, screenWidth, screenHeight);
-
-        // ImageView dynamisch schalen om het venster te vullen zonder witte ruimtes
+        // Dynamisch schalen
         scene.widthProperty().addListener((obs, oldVal, newVal) -> scaleImage(imageView, scene));
         scene.heightProperty().addListener((obs, oldVal, newVal) -> scaleImage(imageView, scene));
 
-        // Stage instellen op schermgrootte
-        stage.setTitle("ImageView Fill Window");
-        stage.setX(screenBounds.getMinX());
-        stage.setY(screenBounds.getMinY());
-        stage.setWidth(screenWidth);
-        stage.setHeight(screenHeight);
-
+        // Stage configureren
+        stage.setTitle("ImageView");
+        stage.setX(bounds.getMinX());
+        stage.setY(bounds.getMinY());
+        stage.setWidth(bounds.getWidth());
+        stage.setHeight(bounds.getHeight());
         stage.setScene(scene);
         stage.show();
 
@@ -50,17 +42,10 @@ public class ImageViewExample extends Application {
     }
 
     private void scaleImage(ImageView imageView, Scene scene) {
-        double sceneWidth = scene.getWidth();
-        double sceneHeight = scene.getHeight();
-
-        double imageWidth = imageView.getImage().getWidth();
-        double imageHeight = imageView.getImage().getHeight();
-
-        // Schaalfactor berekenen zodat het hele venster gevuld is (croppen indien nodig)
-        double scale = Math.max(sceneWidth / imageWidth, sceneHeight / imageHeight);
-
-        imageView.setFitWidth(imageWidth * scale);
-        imageView.setFitHeight(imageHeight * scale);
+        double scale = Math.max(scene.getWidth() / imageView.getImage().getWidth(),
+                scene.getHeight() / imageView.getImage().getHeight());
+        imageView.setFitWidth(imageView.getImage().getWidth() * scale);
+        imageView.setFitHeight(imageView.getImage().getHeight() * scale);
     }
 
     public static void main(String[] args) {
