@@ -20,7 +20,7 @@ public class Customer {
         this.currentPosition = waypoint;
 
         if (waypoint.hasShelf()) {
-            System.out.println(name + " has reached shelf: " + waypoint.getShelf().getName());
+            System.out.println(name + " reached shelf: " + waypoint.getShelf().getName());
         }
     }
 
@@ -33,6 +33,8 @@ public class Customer {
             } else {
                 System.out.println(name + " tried to take " + productName + ", but it's out of stock!");
             }
+        } else {
+            System.out.println(name + " is not at a shelf!");
         }
     }
 
@@ -43,4 +45,7 @@ public class Customer {
         }
     }
 
+    public String getName() {
+        return name;
+    }
 }

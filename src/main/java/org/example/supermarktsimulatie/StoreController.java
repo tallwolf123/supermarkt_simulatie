@@ -2,17 +2,12 @@ package org.example.supermarktsimulatie;
 
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
-import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.animation.PathTransition;
-import javafx.scene.shape.LineTo;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
+import javafx.scene.shape.Line;
 import javafx.util.Duration;
 
 public class StoreController {
@@ -21,66 +16,31 @@ public class StoreController {
     private ImageView imageView;
 
     @FXML
-    private StackPane root;
+    private Pane root;
 
     @FXML
     public void initialize() {
-        // --- Existing ImageView logic ---
+        // Achtergrondafbeelding en cursor
         root.setCursor(Cursor.CROSSHAIR);
         imageView.fitWidthProperty().bind(root.widthProperty());
         imageView.fitHeightProperty().bind(root.heightProperty());
-        imageView.setPreserveRatio(false);
-        root.widthProperty().addListener((obs, oldVal, newVal) -> updateViewport());
-        root.heightProperty().addListener((obs, oldVal, newVal) -> updateViewport());
+        imageView.setPreserveRatio(true);
 
-//        Label coordLabel = new Label();
-//        coordLabel.setStyle("-fx-background-color: white; -fx-padding: 4; -fx-border-color: black;");
-//        coordLabel.setLayoutX(10);
-//        coordLabel.setLayoutY(10);
-//        root.getChildren().add(coordLabel);
-//
-//        root.setOnMouseMoved(event -> {
-//            double mouseX = event.getX();
-//            double mouseY = event.getY();
-//
-//            double imageWidth = imageView.getImage().getWidth();
-//            double imageHeight = imageView.getImage().getHeight();
-//            double paneWidth = root.getWidth();
-//            double paneHeight = root.getHeight();
-//
-//            // Calculate scale to fit the image inside StackPane while preserving ratio
-//            double scale = Math.min(paneWidth / imageWidth, paneHeight / imageHeight);
-//
-//            // Size of displayed image
-//            double displayedWidth = imageWidth * scale;
-//            double displayedHeight = imageHeight * scale;
-//
-//            // Letterboxing offsets
-//            double offsetX = (paneWidth - displayedWidth) / 2;
-//            double offsetY = (paneHeight - displayedHeight) / 2;
-//
-//            // Mouse relative to top-left of displayed image
-//            double relativeX = mouseX - offsetX;
-//            double relativeY = mouseY - offsetY;
-//
-//            // Clamp to image bounds
-//            relativeX = Math.max(0, Math.min(displayedWidth, relativeX));
-//            relativeY = Math.max(0, Math.min(displayedHeight, relativeY));
-//
-//            // Convert to original image coordinates
-//            double imageX = relativeX / scale;
-//            double imageY = relativeY / scale;
-//
-//            coordLabel.setText(String.format("X: %.1f, Y: %.1f", imageX, imageY));
-//
-//            // Optional: make label follow cursor
-//            coordLabel.setLayoutX(mouseX + 15);
-//            coordLabel.setLayoutY(mouseY + 15);
-//        });
+        // Label om de muiscoördinaten te tonen
+        javafx.scene.control.Label cursorLabel = new javafx.scene.control.Label();
+        cursorLabel.setStyle("-fx-background-color: white; -fx-border-color: black;");
+        cursorLabel.setLayoutX(10);
+        cursorLabel.setLayoutY(10);
+        root.getChildren().add(cursorLabel);
 
+        // Mouse moved event
+        root.setOnMouseMoved(event -> {
+            double x = event.getX();
+            double y = event.getY();
+            cursorLabel.setText(String.format("X: %.0f, Y: %.0f", x, y));
+        });
 
-
-        // --- Setup shelves ---
+        // Shelves
         Shelf drinksShelf = new Shelf("Drinks");
         drinksShelf.addProduct(new Product("Cola", 10));
         drinksShelf.addProduct(new Product("Water", 15));
@@ -89,74 +49,49 @@ public class StoreController {
         snacksShelf.addProduct(new Product("Chips", 20));
         snacksShelf.addProduct(new Product("Cookies", 8));
 
-        // --- Setup waypoints ---
-        Waypoint entrance = new Waypoint("Entrance", 70, -200);
-        Waypoint drinksWP = new Waypoint("DrinksWP", 70, -120, drinksShelf);
-        Waypoint snacksWP = new Waypoint("SnacksWP", 20, -120, snacksShelf);
+        // Waypoints
+        Waypoint entrance = new Waypoint("Entrance", 518, 194, root);
+        Waypoint exit = new Waypoint("Exit", 392, 194, root);
+        Waypoint drinksWP = new Waypoint("DrinksWP", 518, 268, drinksShelf, root);
+        Waypoint snacksWP = new Waypoint("SnacksWP", 450, 268, snacksShelf, root);
 
-        // Add waypoint circles to root automatically
-        root.getChildren().addAll(
-                entrance.getCircle(),
-                drinksWP.getCircle(),
-                snacksWP.getCircle()
-        );
+        entrance.connectTo(drinksWP, root);
+        drinksWP.connectTo(snacksWP, root);
+        snacksWP.connectTo(exit, root);
 
-        // --- Add labels ---
-        Label drinksLabel = new Label(drinksWP.getId());
-        drinksLabel.setLayoutX(drinksWP.getX() + 12);
-        drinksLabel.setLayoutY(drinksWP.getY() - 5);
-
-        // --- Customer representation ---
+        // Customer
+        Customer alice = new Customer("Alice", entrance);
         Circle aliceCircle = new Circle(10, Color.ORANGE);
         aliceCircle.setTranslateX(entrance.getX());
         aliceCircle.setTranslateY(entrance.getY());
         root.getChildren().add(aliceCircle);
 
-        // --- Create customer ---
-        Customer alice = new Customer("Alice", entrance);
-
-        // --- Animate customer moving to drinks shelf ---
-        moveCustomer(alice, aliceCircle, drinksWP, () -> {
-            alice.takeProductFromShelf("Cola");
-
-            // After picking Cola, move to snacks shelf
-            moveCustomer(alice, aliceCircle, snacksWP, () -> {
-                alice.takeProductFromShelf("Cookies");
-
-                // Show results in console
-                alice.showBasket();
-                drinksShelf.showStock();
-                snacksShelf.showStock();
-            });
+        moveCustomerAlong(alice, aliceCircle, new Waypoint[]{drinksWP, snacksWP, exit}, () -> {
+            alice.takeProductFromShelf("Cookies");
+            alice.showBasket();
+            drinksShelf.showStock();
+            snacksShelf.showStock();
         });
     }
 
-    // Helper method to animate movement and update customer position
-    private void moveCustomer(Customer customer, Circle circle, Waypoint waypoint, Runnable onFinished) {
-        TranslateTransition tt = new TranslateTransition(Duration.seconds(1.5), circle);
-        tt.setToX(waypoint.getX());
-        tt.setToY(waypoint.getY());
-        tt.setOnFinished(e -> {
-            customer.moveTo(waypoint);
+    private void moveCustomerAlong(Customer customer, Circle circle, Waypoint[] path, Runnable onFinished) {
+        moveStep(customer, circle, path, 0, onFinished);
+    }
+
+    private void moveStep(Customer customer, Circle circle, Waypoint[] path, int index, Runnable onFinished) {
+        if (index >= path.length) {
             if (onFinished != null) onFinished.run();
+            return;
+        }
+        Waypoint next = path[index];
+        TranslateTransition tt = new TranslateTransition(Duration.seconds(1.5), circle);
+        tt.setToX(next.getX());
+        tt.setToY(next.getY());
+        tt.setOnFinished(e -> {
+            customer.moveTo(next);
+            if (next.hasShelf()) customer.takeProductFromShelf("Cola");
+            moveStep(customer, circle, path, index + 1, onFinished);
         });
         tt.play();
-    }
-
-    private void updateViewport() {
-        double vw = root.getWidth();
-        double vh = root.getHeight();
-        double iw = imageView.getImage().getWidth();
-        double ih = imageView.getImage().getHeight();
-
-        double scale = Math.max(vw / iw, vh / ih);
-
-        double sw = vw / scale;
-        double sh = vh / scale;
-
-        double sx = (iw - sw) / 2;
-        double sy = (ih - sh) / 2;
-
-        imageView.setViewport(new Rectangle2D(sx, sy, sw, sh));
     }
 }

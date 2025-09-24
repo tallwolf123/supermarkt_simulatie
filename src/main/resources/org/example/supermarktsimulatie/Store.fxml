@@ -3,19 +3,18 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Pane?>
 
-<StackPane xmlns="http://javafx.com/javafx/24.0.1"
-           xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="org.example.supermarktsimulatie.StoreController"
-           fx:id="root">
+<Pane xmlns="http://javafx.com/javafx/24.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.supermarktsimulatie.StoreController"
+      fx:id="root">
 
    <children>
-      <ImageView fx:id="imageView"
-                 smooth="true"
-                 pickOnBounds="true">
+      <ImageView fx:id="imageView" smooth="true" pickOnBounds="true">
          <image>
             <Image url="@../../../afbeeldingen/farmershall_1stfloor.png" />
          </image>
       </ImageView>
    </children>
-</StackPane>
+</Pane>
