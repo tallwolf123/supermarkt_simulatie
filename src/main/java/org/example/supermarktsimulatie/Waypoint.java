@@ -44,14 +44,12 @@ public class Waypoint {
         line.startYProperty().bind(this.circle.layoutYProperty());
         line.endXProperty().bind(other.circle.layoutXProperty());
         line.endYProperty().bind(other.circle.layoutYProperty());
-        line.setStroke(Color.RED);  // opvallende kleur
+        line.setStroke(Color.RED);
         line.setStrokeWidth(3);
 
-        // Voeg de lijn toe **na de ImageView**, maar vóór de cirkels
-        int imageViewIndex = 0; // neem aan dat imageView het eerste kind is
+        int imageViewIndex = 0;
         root.getChildren().add(imageViewIndex + 1, line);
 
-        // Circles altijd vooraan
         this.circle.toFront();
         other.circle.toFront();
     }

@@ -26,7 +26,6 @@ public class StoreController {
         imageView.fitHeightProperty().bind(root.heightProperty());
         imageView.setPreserveRatio(true);
 
-        // Label om de muiscoördinaten te tonen
         javafx.scene.control.Label cursorLabel = new javafx.scene.control.Label();
         cursorLabel.setStyle("-fx-background-color: white; -fx-border-color: black;");
         cursorLabel.setLayoutX(10);
