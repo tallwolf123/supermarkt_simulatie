@@ -17,12 +17,13 @@ public class Product {
         return stock;
     }
 
-    public boolean takeFromShelf() {
-        if (stock > 0) {
-            stock--;
-            return true;
-        }
-        return false;
+    public void addStock(int amount) {
+        stock += amount;
+    }
+
+    public void reduceStock(int amount) {
+        if (amount <= stock) stock -= amount;
+        else stock = 0;
     }
 
     @Override

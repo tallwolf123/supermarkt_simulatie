@@ -1,15 +1,11 @@
 package org.example.supermarktsimulatie;
 
-import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.control.Label;
-import javafx.util.Duration;
 
 public class StoreController {
 
@@ -22,75 +18,49 @@ public class StoreController {
     @FXML
     private Label cursorLabel;
 
+    private final InventoryManager inventoryManager = new InventoryManager();
+
     @FXML
     public void initialize() {
-        // Cursorstijl
         root.setCursor(Cursor.CROSSHAIR);
-
-        // Achtergrond schaalbaar
         imageView.fitWidthProperty().bind(root.widthProperty());
         imageView.fitHeightProperty().bind(root.heightProperty());
         imageView.setPreserveRatio(true);
 
-        // Mouse moved event voor label
-        root.setOnMouseMoved(event -> {
-            double x = event.getX();
-            double y = event.getY();
-            cursorLabel.setText(String.format("X: %.0f, Y: %.0f", x, y));
-        });
+        root.setOnMouseMoved(event -> cursorLabel.setText(
+                String.format("X: %.0f, Y: %.0f", event.getX(), event.getY())
+        ));
 
-        // Shelves
+        // Oneindige storage
+        Storage storage = new Storage("Storage");
+        storage.addProduct(new Product("Cola", 1));
+        storage.addProduct(new Product("Water", 1));
+        storage.addProduct(new Product("Chips", 1));
+        storage.addProduct(new Product("Cookies", 1));
+
+        // Normale shelves
         Shelf drinksShelf = new Shelf("Drinks");
-        drinksShelf.addProduct(new Product("Cola", 10));
-        drinksShelf.addProduct(new Product("Water", 15));
-
         Shelf snacksShelf = new Shelf("Snacks");
-        snacksShelf.addProduct(new Product("Chips", 20));
-        snacksShelf.addProduct(new Product("Cookies", 8));
+
+        inventoryManager.restockShelf(storage, drinksShelf, "Cola", 10);
+        inventoryManager.restockShelf(storage, drinksShelf, "Water", 15);
+        inventoryManager.restockShelf(storage, snacksShelf, "Chips", 20);
+        inventoryManager.restockShelf(storage, snacksShelf, "Cookies", 8);
 
         // Waypoints
-        Waypoint entrance = new Waypoint("Entrance", 518, 194, root);
-        Waypoint exit = new Waypoint("Exit", 392, 194, root);
-        Waypoint drinksWP = new Waypoint("DrinksWP", 518, 268, drinksShelf, root);
-        Waypoint snacksWP = new Waypoint("SnacksWP", 450, 268, snacksShelf, root);
-
-        entrance.connectTo(drinksWP, root);
-        drinksWP.connectTo(snacksWP, root);
-        snacksWP.connectTo(exit, root);
+        StoreMapController mapController = new StoreMapController(root);
+        Waypoint[] path = mapController.setupMap(drinksShelf, snacksShelf);
 
         // Customer
-        Customer alice = new Customer("Alice", entrance);
-        Circle aliceCircle = new Circle(10, Color.ORANGE);
-        aliceCircle.setTranslateX(entrance.getX());
-        aliceCircle.setTranslateY(entrance.getY());
-        root.getChildren().add(aliceCircle);
+        Customer alice = new Customer("Alice", path[0], inventoryManager);
+        CustomerAnimationController animationController = new CustomerAnimationController(root);
+        Circle aliceCircle = animationController.createCustomerCircle(path[0]);
 
-        moveCustomerAlong(alice, aliceCircle, new Waypoint[]{drinksWP, snacksWP, exit}, () -> {
+        animationController.moveCustomerAlong(alice, aliceCircle, path, () -> {
             alice.takeProductFromShelf("Cookies");
             alice.showBasket();
             drinksShelf.showStock();
             snacksShelf.showStock();
         });
-    }
-
-    private void moveCustomerAlong(Customer customer, Circle circle, Waypoint[] path, Runnable onFinished) {
-        moveStep(customer, circle, path, 0, onFinished);
-    }
-
-    private void moveStep(Customer customer, Circle circle, Waypoint[] path, int index, Runnable onFinished) {
-        if (index >= path.length) {
-            if (onFinished != null) onFinished.run();
-            return;
-        }
-        Waypoint next = path[index];
-        TranslateTransition tt = new TranslateTransition(Duration.seconds(1.5), circle);
-        tt.setToX(next.getX());
-        tt.setToY(next.getY());
-        tt.setOnFinished(e -> {
-            customer.moveTo(next);
-            if (next.hasShelf()) customer.takeProductFromShelf("Cola");
-            moveStep(customer, circle, path, index + 1, onFinished);
-        });
-        tt.play();
     }
 }

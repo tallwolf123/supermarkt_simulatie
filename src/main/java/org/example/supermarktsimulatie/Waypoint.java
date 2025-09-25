@@ -4,7 +4,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +24,6 @@ public class Waypoint {
         this.x = x;
         this.y = y;
         this.shelf = shelf;
-
-        // Circle
         this.circle = new Circle(8, Color.RED);
         this.circle.setLayoutX(x);
         this.circle.setLayoutY(y);
@@ -38,22 +35,17 @@ public class Waypoint {
             connections.add(other);
             other.connections.add(this);
         }
-
         Line line = new Line();
-        line.startXProperty().bind(this.circle.layoutXProperty());
-        line.startYProperty().bind(this.circle.layoutYProperty());
+        line.startXProperty().bind(circle.layoutXProperty());
+        line.startYProperty().bind(circle.layoutYProperty());
         line.endXProperty().bind(other.circle.layoutXProperty());
         line.endYProperty().bind(other.circle.layoutYProperty());
         line.setStroke(Color.RED);
         line.setStrokeWidth(3);
-
-        int imageViewIndex = 0;
-        root.getChildren().add(imageViewIndex + 1, line);
-
+        root.getChildren().add(1, line);
         this.circle.toFront();
         other.circle.toFront();
     }
-
 
     public String getId() { return id; }
     public double getX() { return x; }

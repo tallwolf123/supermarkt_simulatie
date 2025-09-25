@@ -12,19 +12,27 @@ public class Shelf {
     }
 
     public void addProduct(Product product) {
-        products.put(product.getName(), product);
+        products.merge(product.getName(), product, (oldP, newP) -> {
+            oldP.addStock(newP.getStock());
+            return oldP;
+        });
     }
 
-    public boolean takeProduct(String productName) {
+    public Product getProduct(String name) {
+        return products.get(name);
+    }
+
+    public boolean takeFromShelf(String productName) {
         Product p = products.get(productName);
-        if (p != null) {
-            return p.takeFromShelf();
+        if (p != null && p.getStock() > 0) {
+            p.reduceStock(1);
+            return true;
         }
         return false;
     }
 
     public void showStock() {
-        System.out.println("Stock of shelf " + name + ":");
+        System.out.println("Shelf " + name + " stock:");
         products.values().forEach(System.out::println);
     }
 
