@@ -9,7 +9,7 @@ public class Storage extends Shelf {
     @Override
     public boolean takeFromShelf(String productName) {
         if (getProduct(productName) != null) {
-            System.out.println("Storage provides " + productName + " (infinite stock)");
+            //System.out.println("Storage provides " + productName + " (infinite stock)");
             return true; // voorraad raakt nooit op
         }
         return false;
