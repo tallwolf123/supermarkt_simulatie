@@ -2,8 +2,8 @@
 
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.Label?>
 
 <Pane xmlns="http://javafx.com/javafx/24.0.1"
       xmlns:fx="http://javafx.com/fxml/1"
@@ -11,10 +11,16 @@
       fx:id="root">
 
    <children>
+      <!-- Achtergrond -->
       <ImageView fx:id="imageView" smooth="true" pickOnBounds="true">
          <image>
             <Image url="@../../../afbeeldingen/farmershall_1stfloor.png" />
          </image>
       </ImageView>
+
+      <!-- Label voor muiscoördinaten -->
+      <Label fx:id="cursorLabel"
+             layoutX="10" layoutY="10"
+             style="-fx-background-color: white; -fx-border-color: black;" />
    </children>
 </Pane>

@@ -8,6 +8,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.control.Label;
 import javafx.util.Duration;
 
 public class StoreController {
@@ -19,20 +20,19 @@ public class StoreController {
     private Pane root;
 
     @FXML
+    private Label cursorLabel;
+
+    @FXML
     public void initialize() {
-        // Achtergrondafbeelding en cursor
+        // Cursorstijl
         root.setCursor(Cursor.CROSSHAIR);
+
+        // Achtergrond schaalbaar
         imageView.fitWidthProperty().bind(root.widthProperty());
         imageView.fitHeightProperty().bind(root.heightProperty());
         imageView.setPreserveRatio(true);
 
-        javafx.scene.control.Label cursorLabel = new javafx.scene.control.Label();
-        cursorLabel.setStyle("-fx-background-color: white; -fx-border-color: black;");
-        cursorLabel.setLayoutX(10);
-        cursorLabel.setLayoutY(10);
-        root.getChildren().add(cursorLabel);
-
-        // Mouse moved event
+        // Mouse moved event voor label
         root.setOnMouseMoved(event -> {
             double x = event.getX();
             double y = event.getY();
