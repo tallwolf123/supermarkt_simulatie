@@ -9,24 +9,14 @@ public class Product {
         this.stock = stock;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public int getStock() {
-        return stock;
-    }
+    public String getName() { return name; }
+    public int getStock() { return stock; }
 
     public boolean takeFromShelf() {
-        if (stock > 0) {
-            stock--;
-            return true;
-        }
+        if (stock > 0) { stock--; return true; }
         return false;
     }
 
     @Override
-    public String toString() {
-        return name + " (stock: " + stock + ")";
-    }
+    public String toString() { return name + " (stock: " + stock + ")"; }
 }
