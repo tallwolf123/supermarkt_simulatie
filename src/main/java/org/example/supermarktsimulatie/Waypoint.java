@@ -36,15 +36,20 @@ public class Waypoint {
     }
 
     public void connectTo(Waypoint other, Pane root) {
-        if (!connections.contains(other)) { connections.add(other); other.connections.add(this); }
+        if (!connections.contains(other)) {
+            connections.add(other);
+            other.connections.add(this);
+        }
         Line line = new Line();
         line.startXProperty().bind(circle.layoutXProperty());
         line.startYProperty().bind(circle.layoutYProperty());
         line.endXProperty().bind(other.circle.layoutXProperty());
         line.endYProperty().bind(other.circle.layoutYProperty());
-        line.setStroke(Color.RED); line.setStrokeWidth(3);
+        line.setStroke(Color.RED);
+        line.setStrokeWidth(3);
         root.getChildren().add(1, line);
-        circle.toFront(); other.circle.toFront();
+        circle.toFront();
+        other.circle.toFront();
     }
 
     public List<Waypoint> getConnections() { return connections; }
@@ -55,7 +60,23 @@ public class Waypoint {
     public boolean hasShelf() { return shelf != null; }
     public WaypointType getType() { return type; }
 
-    public void enqueueAtCheckout(Customer customer) { if(type==WaypointType.CHECKOUT) checkoutQueue.add(customer); }
+    // Queue logic
+    public void enqueueAtCheckout(Customer c) { if (type==WaypointType.CHECKOUT) checkoutQueue.add(c); }
     public Customer dequeueFromCheckout() { return checkoutQueue.poll(); }
     public int getQueueSize() { return checkoutQueue.size(); }
+
+    /** Snapshot van de huidige wachtrij in FIFO-volgorde. */
+    public List<Customer> getQueueSnapshot() { return new ArrayList<>(checkoutQueue); }
+
+    /** Bereken wachtrijpositie op de lijn van 'from' naar deze checkout. */
+    public double[] getQueuePositionOnPath(Waypoint from, int index) {
+        double dx = this.x - from.getX();
+        double dy = this.y - from.getY();
+        double len = Math.sqrt(dx*dx + dy*dy);
+        if (len == 0) return new double[]{x, y};
+        double step = 20; // afstand tussen klanten
+        double factor = (len - (index+1)*step) / len;
+        if (factor < 0) factor = 0;
+        return new double[]{from.getX() + dx*factor, from.getY() + dy*factor};
+    }
 }

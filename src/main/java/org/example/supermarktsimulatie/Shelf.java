@@ -9,13 +9,20 @@ public class Shelf {
 
     public Shelf(String name) { this.name = name; }
 
-    public void addProduct(Product product) { products.put(product.getName(), product); }
+    public void addProduct(Product product) {
+        products.put(product.getName(), product);
+    }
 
     public boolean takeProduct(String productName) {
         Product p = products.get(productName);
-        return p != null && p.takeFromShelf();
+        if (p != null) return p.takeFromShelf();
+        return false;
     }
 
-    public Map<String, Product> getProducts() { return products; }
+    public void showStock() {
+        System.out.println("Stock of shelf " + name + ":");
+        products.values().forEach(System.out::println);
+    }
+
     public String getName() { return name; }
 }
