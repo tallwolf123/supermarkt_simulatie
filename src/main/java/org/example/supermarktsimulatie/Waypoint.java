@@ -8,7 +8,7 @@ import javafx.scene.shape.Line;
 import java.util.*;
 
 public class Waypoint {
-    public enum WaypointType { NORMAL, SHELF, CHECKOUT }
+    public enum WaypointType { NORMAL, SHELF, CHECKOUT, EMPLOYEEONLY }
 
     private final String id;
     private final double x, y;

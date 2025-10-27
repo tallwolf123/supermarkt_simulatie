@@ -8,6 +8,9 @@ public class Product {
         this.name = name;
         this.stock = stock;
     }
+    public Product(String name) {
+        this.name = name;
+    }
 
     public String getName() { return name; }
     public int getStock() { return stock; }

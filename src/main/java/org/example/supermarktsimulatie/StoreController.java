@@ -184,14 +184,22 @@ public class StoreController {
 
             // animatie naar Exit
             Waypoint exit = waypoints.get("Exit");
-            TranslateTransition tt = new TranslateTransition(Duration.seconds(speed), avatar);
-            tt.setToX(exit.getX());
-            tt.setToY(exit.getY());
-            tt.setOnFinished(e2 -> {
-                customerLeaves(c, avatar);
-                updateCheckoutQueueVisual(checkout); // schuif de volgende in de rij door
-            });
-            tt.play();
+            List<Waypoint> route = Arrays.asList(checkout, exit);
+            List<Waypoint> fullPath = buildPath(route);
+
+            // 🟢 Laat de klant via de waypoints lopen in plaats van in een rechte lijn
+            moveCustomerAlong(c, avatar, fullPath, speed, preferredProducts);
+
+            // update visuals van de rij
+            updateCheckoutQueueVisual(checkout);
+//            TranslateTransition tt = new TranslateTransition(Duration.seconds(speed), avatar);
+//            tt.setToX(exit.getX());
+//            tt.setToY(exit.getY());
+//            tt.setOnFinished(e2 -> {
+//                customerLeaves(c, avatar);
+//                updateCheckoutQueueVisual(checkout); // schuif de volgende in de rij door
+//            });
+//            tt.play();
         }));
         checkoutTimeline.play();
     }
