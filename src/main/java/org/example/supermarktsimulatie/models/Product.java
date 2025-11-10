@@ -1,4 +1,4 @@
-package org.example.supermarktsimulatie;
+package org.example.supermarktsimulatie.models;
 
 public class Product {
     private final String name;
@@ -10,10 +10,15 @@ public class Product {
     }
     public Product(String name) {
         this.name = name;
+        this.stock = 10000;
     }
 
     public String getName() { return name; }
     public int getStock() { return stock; }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
 
     public boolean takeFromShelf() {
         if (stock > 0) {

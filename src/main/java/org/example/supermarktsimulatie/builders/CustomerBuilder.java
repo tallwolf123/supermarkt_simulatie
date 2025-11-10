@@ -1,15 +1,21 @@
-package org.example.supermarktsimulatie;
+package org.example.supermarktsimulatie.builders;
 
 import javafx.scene.paint.Color;
+import org.example.supermarktsimulatie.models.Customer;
+import org.example.supermarktsimulatie.models.Waypoint;
 
 public class CustomerBuilder {
-    private String name="Customer";
+    private final String name;
     private Waypoint startPosition;
     private double speed=1.0;
-    private Color color=Color.ORANGE;
+    private Color color=Color.color(Math.random(),Math.random(),Math.random());
     private String[] preferredProducts=new String[0];
 
-    public CustomerBuilder withName(String n){ name=n; return this; }
+    public CustomerBuilder(String name) {
+        this.name = name;
+    }
+
+//    public CustomerBuilder withName(String n){ name=n; return this; }
     public CustomerBuilder atStart(Waypoint p){ startPosition=p; return this; }
     public CustomerBuilder withSpeed(double s){ speed=s; return this; }
     public CustomerBuilder withColor(Color c){ color=c; return this; }

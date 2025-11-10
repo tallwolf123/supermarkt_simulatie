@@ -1,4 +1,7 @@
-package org.example.supermarktsimulatie;
+package org.example.supermarktsimulatie.builders;
+
+import org.example.supermarktsimulatie.models.Product;
+import org.example.supermarktsimulatie.models.Shelf;
 
 public class ShelfBuilder {
     private final Shelf shelf;

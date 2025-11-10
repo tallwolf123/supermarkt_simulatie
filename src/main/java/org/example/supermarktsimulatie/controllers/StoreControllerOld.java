@@ -1,4 +1,4 @@
-package org.example.supermarktsimulatie;
+package org.example.supermarktsimulatie.controllers;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -12,10 +12,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
+import org.example.supermarktsimulatie.builders.CustomerBuilder;
+import org.example.supermarktsimulatie.builders.EmployeeBuilder;
+import org.example.supermarktsimulatie.builders.StoreBuilder;
+import org.example.supermarktsimulatie.models.Customer;
+import org.example.supermarktsimulatie.models.Employee;
+import org.example.supermarktsimulatie.models.Waypoint;
 
 import java.util.*;
 
-public class StoreController {
+public class StoreControllerOld {
     @FXML private ImageView imageView;
     @FXML private Pane root;
     @FXML private Label cursorLabel;
@@ -29,6 +35,13 @@ public class StoreController {
         CustomerRecord(Customer c, Circle a){ customer=c; avatar=a; }
     }
     private final List<CustomerRecord> activeCustomers = new ArrayList<>();
+
+    private static class EmployeeRecord {
+        final Employee employee;
+        final Circle avatar;
+        EmployeeRecord(Employee e, Circle a){ employee=e; avatar=a; }
+    }
+    private final List<EmployeeRecord> activeEmployees = new ArrayList<>();
 
     /** Onthoud per klant vanaf welk waypoint hij de checkout benadert (voor rijposities op het pad). */
     private final Map<Customer, Waypoint> checkoutPrev = new HashMap<>();
@@ -50,6 +63,8 @@ public class StoreController {
         hudBox.setStyle("-fx-background-color: rgba(255,255,255,0.85); -fx-padding: 10; -fx-border-color: black;");
         root.getChildren().add(hudBox);
 
+        spawnEmployee();
+
         Timeline spawner=new Timeline(new KeyFrame(Duration.seconds(3), e->spawnCustomer()));
         spawner.setCycleCount(Timeline.INDEFINITE);
         spawner.play();
@@ -66,14 +81,44 @@ public class StoreController {
                 .orElse(checkouts.get(0));
     }
 
+    private void spawnEmployee() {
+        String name = "Employee-" + UUID.randomUUID().toString().substring(0, 4);
+        EmployeeBuilder.BuiltEmployee built = new EmployeeBuilder(name)
+                .atStart(waypoints.get("Entrance"))
+                .withColor(Color.BLUE)
+                .build();
+
+        Employee e = built.getEmployee();
+        Circle avatar = new Circle(5, built.getColor());
+        avatar.setTranslateX(e.getCurrentPosition().getX());
+        avatar.setTranslateY(e.getCurrentPosition().getY());
+        root.getChildren().add(avatar);
+        activeEmployees.add(new EmployeeRecord(e, avatar));
+
+        moveEmployeeLogic(e, avatar);
+    }
+
+
     private void spawnCustomer(){
-        String name="Customer-"+UUID.randomUUID().toString().substring(0,4);
-        Customer c=new Customer(name, waypoints.get("Entrance"));
-        Circle avatar=new Circle(10, Color.color(Math.random(),Math.random(),Math.random()));
+        String name = "Customer-" + UUID.randomUUID().toString().substring(0, 4);
+
+        Color randomColor = Color.color(Math.random(), Math.random(), Math.random());
+
+        CustomerBuilder.BuiltCustomer built = new CustomerBuilder(name)
+                .atStart(waypoints.get("Entrance"))
+                .withSpeed(1.5)
+                .withColor(randomColor)
+                .withPreferredProducts("Cola", "Water", "Chips", "Cookies")
+                .build();
+
+        Customer c = built.getCustomer();
+        Color avatarColor = built.getColor();
+
+        Circle avatar = new Circle(10, avatarColor);
         avatar.setTranslateX(c.getCurrentPosition().getX());
         avatar.setTranslateY(c.getCurrentPosition().getY());
         root.getChildren().add(avatar);
-        activeCustomers.add(new CustomerRecord(c,avatar));
+        activeCustomers.add(new CustomerRecord(c, avatar));
 
         // winkelboodschappenlijst genereren
         List<String> allProducts = Arrays.asList("Cola", "Water", "Chips", "Cookies");
@@ -133,12 +178,86 @@ public class StoreController {
         moveStep(c,avatar,path,1,speed,preferredProducts);
     }
 
+    private void moveEmployeeLogic(Employee e, Circle avatar) {
+        Timeline loop = new Timeline(new KeyFrame(Duration.seconds(3), ev -> handleEmployeeBehavior(e, avatar)));
+        loop.setCycleCount(Timeline.INDEFINITE);
+        loop.play();
+    }
+
+    private void handleEmployeeBehavior(Employee e, Circle avatar) {
+        // Als employee al onderweg is, niets doen
+        if (e.getState() == Customer.State.WALKING) return;
+
+        boolean hasStock = e.getBasket().stream()
+                .anyMatch(p -> p.getName().equalsIgnoreCase("Stock"));
+
+        if (!hasStock) {
+            // 📦 Geen stock -> naar Storage
+            Waypoint storage = waypoints.get("Storage");
+            if (storage == null) return;
+
+            System.out.println(e.getName() + " gaat naar Storage om voorraad op te halen.");
+            List<Waypoint> route = buildPath(List.of(e.getCurrentPosition(), storage));
+            moveEmployeeAlong(e, avatar, route, 1.2, true); // true = ophalen
+        } else {
+            // 🧃 Heeft stock -> ga naar willekeurige shelf
+            List<Waypoint> shelfWaypoints = waypoints.values().stream()
+                    .filter(Waypoint::hasShelf)
+                    .toList();
+
+            if (shelfWaypoints.isEmpty()) return;
+            Waypoint target = shelfWaypoints.get(new Random().nextInt(shelfWaypoints.size()));
+
+            System.out.println(e.getName() + " gaat naar shelf " + target.getName() + " om te restocken.");
+            List<Waypoint> route = buildPath(List.of(e.getCurrentPosition(), target));
+            moveEmployeeAlong(e, avatar, route, 1.5, false); // false = restocken
+        }
+    }
+
+    private void moveEmployeeAlong(Employee e, Circle avatar, List<Waypoint> path, double speed, boolean fetching) {
+        e.setState(Customer.State.WALKING);
+        moveEmployeeStep(e, avatar, path, 1, speed, fetching);
+    }
+
+    private void moveEmployeeStep(Employee e, Circle avatar, List<Waypoint> path, int i, double speed, boolean fetching) {
+        if (i >= path.size()) {
+            Waypoint dest = path.get(path.size() - 1);
+            e.moveTo(dest);
+
+            if (fetching) {
+                // 📦 Employee neemt stock mee
+                e.addToShoppingList("Stock"); // optioneel voor consistentie
+                e.takeProductsFromShelf();    // als Storage ook een Shelf heeft
+                System.out.println(e.getName() + " heeft voorraad opgehaald bij " + dest.getName());
+            } else {
+                // 🧃 Employee doet restock
+                e.restock(waypoints);
+                e.getBasket().clear(); // leegt zijn voorraad
+            }
+
+            e.setState(Customer.State.WAITING);
+            updateHUD();
+            return;
+        }
+
+        Waypoint next = path.get(i);
+        TranslateTransition tt = new TranslateTransition(Duration.seconds(speed), avatar);
+        tt.setToX(next.getX());
+        tt.setToY(next.getY());
+        tt.setOnFinished(ev -> {
+            e.moveTo(next);
+            moveEmployeeStep(e, avatar, path, i + 1, speed, fetching);
+        });
+        tt.play();
+    }
+
+
     private void moveStep(Customer c,Circle avatar,List<Waypoint> path,int i,double speed,String[] preferredProducts){
         if(i>=path.size()){ customerLeaves(c,avatar); return; }
-        Waypoint next=path.get(i);
+        Waypoint next = path.get(i);
 
-        if(next.getType()==Waypoint.WaypointType.CHECKOUT){
-            Waypoint prev=path.get(i-1);
+        if(next.getType() == Waypoint.WaypointType.CHECKOUT){
+            Waypoint prev = path.get(i-1);
 
             // Registreer benaderingspunt en zet currentPosition op checkout zodat de rijupdate hem ziet
             checkoutPrev.put(c, prev);
@@ -149,7 +268,7 @@ public class StoreController {
             double[] posXY=(pos==0) ? new double[]{next.getX(),next.getY()} : next.getQueuePositionOnPath(prev,pos);
             if(pos==0) c.setState(Customer.State.CHECKOUT);
 
-            TranslateTransition tt=new TranslateTransition(Duration.seconds(speed),avatar);
+            TranslateTransition tt = new TranslateTransition(Duration.seconds(speed),avatar);
             tt.setToX(posXY[0]); tt.setToY(posXY[1]);
             tt.setOnFinished(ev->{
                 if(pos==0){
@@ -187,7 +306,6 @@ public class StoreController {
             List<Waypoint> route = Arrays.asList(checkout, exit);
             List<Waypoint> fullPath = buildPath(route);
 
-            // 🟢 Laat de klant via de waypoints lopen in plaats van in een rechte lijn
             moveCustomerAlong(c, avatar, fullPath, speed, preferredProducts);
 
             // update visuals van de rij
@@ -266,6 +384,13 @@ public class StoreController {
                             +" | Mandje: "+cr.customer.getBasketDescription()
                             +" | Nog te kopen: "+cr.customer.getShoppingListDescription()
                             +" | State: "+cr.customer.getState()
+            ));
+        }
+        for(EmployeeRecord er:activeEmployees){
+            hudBox.getChildren().add(new Label(
+                    er.employee.getName()
+                            +" | Mandje: "+er.employee.getBasketDescription()
+                            +" | State: "+er.employee.getState()
             ));
         }
     }

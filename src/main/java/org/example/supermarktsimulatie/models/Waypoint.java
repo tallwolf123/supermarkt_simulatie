@@ -1,4 +1,4 @@
-package org.example.supermarktsimulatie;
+package org.example.supermarktsimulatie.models;
 
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
