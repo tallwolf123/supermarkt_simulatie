@@ -2,6 +2,7 @@ package org.example.supermarktsimulatie.builders;
 
 import javafx.scene.layout.Pane;
 import org.example.supermarktsimulatie.models.Product;
+import org.example.supermarktsimulatie.models.Employee;
 import org.example.supermarktsimulatie.models.Shelf;
 import org.example.supermarktsimulatie.models.Waypoint;
 

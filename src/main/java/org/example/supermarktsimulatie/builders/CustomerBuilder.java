@@ -1,8 +1,8 @@
 package org.example.supermarktsimulatie.builders;
 
 import javafx.scene.paint.Color;
-import org.example.supermarktsimulatie.models.Customer;
 import org.example.supermarktsimulatie.models.Waypoint;
+import org.example.supermarktsimulatie.models.Customer;
 
 public class CustomerBuilder {
     private final String name;

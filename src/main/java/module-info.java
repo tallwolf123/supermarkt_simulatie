@@ -11,7 +11,6 @@ module org.example.supermarktsimulatie {
     requires com.almasb.fxgl.all;
     requires javafx.graphics;
     requires java.desktop;
-    requires org.example.supermarktsimulatie;
 
     opens org.example.supermarktsimulatie to javafx.fxml;
     exports org.example.supermarktsimulatie;

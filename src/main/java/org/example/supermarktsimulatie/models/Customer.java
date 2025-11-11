@@ -1,6 +1,8 @@
 package org.example.supermarktsimulatie.models;
 
+import javafx.scene.paint.Color;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Customer extends Person {
@@ -8,47 +10,35 @@ public class Customer extends Person {
 
     public Customer(String name, Waypoint startPosition) {
         super(name, startPosition);
+        this.color = Color.DEEPSKYBLUE;
     }
 
-    /** Klantgedrag: check of er producten te halen zijn */
+    public Customer(String name, Waypoint startPosition, Color color) {
+        super(name, startPosition, color);
+    }
+
+    /** Simpel gedrag: bij shelf pak items van boodschappenlijst */
     @Override
     public void act() {
         if (currentPosition != null && currentPosition.hasShelf()) {
-            grabFrom(currentPosition.getShelf());
-        }
-    }
-
-    public void addToShoppingList(String product) {
-        shoppingList.add(product);
-    }
-
-    public void addAllToShoppingList(List<String> products) {
-        shoppingList.addAll(products);
-    }
-
-    public List<String> getShoppingListSnapshot() {
-        return List.copyOf(shoppingList);
-    }
-
-    private void grabFrom(Shelf shelf) {
-        List<String> bought = new ArrayList<>();
-        for (String productName : new ArrayList<>(shoppingList)) {
-            if (shelf.takeProduct(productName)) {
-                basket.add(new Product(productName, 1));
-                bought.add(productName);
-                System.out.printf("%s kocht %s van %s%n", name, productName, shelf.getName());
+            Shelf shelf = currentPosition.getShelf();
+            for (Iterator<String> it = shoppingList.iterator(); it.hasNext(); ) {
+                String wanted = it.next();
+                Product p = shelf.getProduct(wanted);
+                if (p != null && p.takeFromShelf()) {
+                    basket.add(new Product(p.getName(), 1));
+                    it.remove();
+                }
             }
+            state = shoppingList.isEmpty() ? State.DONE : State.SHOPPING;
         }
-        shoppingList.removeAll(bought);
+    }
+
+    public void addToShoppingList(String... items) {
+        for (String s : items) if (s != null) shoppingList.add(s);
     }
 
     public String getShoppingListDescription() {
         return shoppingList.isEmpty() ? "(alles gekocht)" : String.join(", ", shoppingList);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s [%s] | Mandje: %s | Nog te kopen: %s",
-                name, state, getBasketDescription(), getShoppingListDescription());
     }
 }
